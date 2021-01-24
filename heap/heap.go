@@ -26,12 +26,25 @@ func NewHeap(maxSize int) *Heap {
 	return &Heap{maxSize: maxSize}
 }
 
-// Heapify returns a Heap of the specified size using the given
-// source slice as its backing storage, and heap-sorts it in <= O(n) time.
-func Heapify(source []Orderable, maxSize int) *Heap {
+// Heapify returns a Heap of the specified size using the given source
+// slice as its backing storage, and heap-sorts it in <= O(n) time. If
+// the given heap is larger than the specified size the second return
+// value contains the lowest-ordered values in the heap, which have
+// been discarded
+func Heapify(source []Orderable, maxSize int) (*Heap, []Orderable) {
 	result := &Heap{storage: source, maxSize: maxSize}
 	result.heapify()
-	return result
+
+	discarded := []Orderable{}
+
+	if maxSize > 0 {
+		for result.Size() > maxSize {
+			excessVal, _ := result.Pop()
+			discarded = append(discarded, excessVal)
+		}
+	}
+
+	return result, discarded
 }
 
 // Push adds an item to the heap.
