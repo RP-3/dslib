@@ -282,7 +282,6 @@ func assertSlice(a, b []int, t *testing.T) {
 	}
 }
 
-// testing helpers
 type testItem struct {
 	key int
 }

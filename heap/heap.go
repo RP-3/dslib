@@ -11,7 +11,15 @@ type Orderable interface {
 	Order() int
 }
 
-// Heap is a priority queue (min-heap)
+// Heap is a priority queue (min-heap), which maintains the lowest-ordered
+// values at the front. Items contained within the heap must conform to the
+// Orderable interface, which just means they must have an integer Order
+// which can be used to compare items. Heaps can be pushed to or popped
+// from. Popping always yields the lowest-orederd item in the heap, and
+// pushing adds an item to the heap. If the heap is at capacity, pushing
+// ejects and returns the lowest-ordered item inside the heap. For a general
+// description see https://en.wikipedia.org/wiki/Heap_(data_structure).
+// For a detailed explanation see https://bradfieldcs.com/algos/trees/priority-queues-with-binary-heaps/
 type Heap struct {
 	storage []Orderable
 	maxSize int
