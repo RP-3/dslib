@@ -18,6 +18,11 @@ func TestUnbounded(t *testing.T) {
 		return NewHeap(-1)
 	}
 
+	t.Run("Capacity", func(t *testing.T) {
+		subject := unboundedHeap()
+		assertInt(subject.Capacity(), maxInt, t)
+	})
+
 	t.Run("Push", func(t *testing.T) {
 		t.Run("when the heap is empty", func(t *testing.T) {
 			subject, item := unboundedHeap(), testItem{1}
@@ -127,6 +132,11 @@ func TestFixedSize(t *testing.T) {
 		return NewHeap(heapSize)
 	}
 
+	t.Run("Capacity", func(t *testing.T) {
+		subject := fixedHeap()
+		assertInt(subject.Capacity(), heapSize, t)
+	})
+
 	t.Run("Push", func(t *testing.T) {
 		t.Run("when <= size items are inserted", func(t *testing.T) {
 			subject := fixedHeap()
@@ -215,6 +225,7 @@ func TestHeapify(t *testing.T) {
 			testItem{key: 9},
 		}
 		subject, discarded := Heapify(nums, -1)
+		assertInt(subject.Capacity(), maxInt, t)
 
 		// generates a valid heap out of the given slice
 		assertHeapOrdering(subject, t)
@@ -235,6 +246,7 @@ func TestHeapify(t *testing.T) {
 
 		subject, discarded := Heapify(nums, 5)
 		assertHeapOrdering(subject, t) // valid
+		assertInt(subject.Capacity(), 5, t)
 
 		// should remove 1 and 2 (the smallest two)
 		sortedContents := make([]int, 0, 5)

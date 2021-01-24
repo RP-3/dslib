@@ -43,6 +43,9 @@ func NewHeap(maxSize int) *Heap {
 // value contains the lowest-ordered values in the heap, which have
 // been discarded
 func Heapify(source []Orderable, maxSize int) (*Heap, []Orderable) {
+	if maxSize <= 0 {
+		maxSize = maxInt
+	}
 	result := &Heap{storage: source, maxSize: maxSize}
 	result.heapify()
 
@@ -102,6 +105,11 @@ func (h *Heap) Peak() (Orderable, bool) {
 // Size returns the number of items in the Heap
 func (h *Heap) Size() int {
 	return len(h.storage)
+}
+
+// Capacity returns the maximum size of the heap
+func (h *Heap) Capacity() int {
+	return h.maxSize
 }
 
 func (h *Heap) removeLast() Orderable {
