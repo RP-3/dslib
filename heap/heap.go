@@ -68,14 +68,6 @@ func (h *Heap) Push(val Orderable) (Orderable, bool) {
 	return nil, false
 }
 
-// UnsafeStorage yields a shallow copy of the underlying storage of the heap.
-// The behaviour following mutation of the copy or its pointers is undefined
-func (h *Heap) UnsafeStorage() []Orderable {
-	result := make([]Orderable, 0, len(h.storage))
-	copy(result, h.storage)
-	return result
-}
-
 // Pop removes the highest priority item from the heap.
 // The second return val, if false, indicates that the heap is empty
 // and that a nil value was returned to you as the first return val

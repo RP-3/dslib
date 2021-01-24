@@ -299,7 +299,7 @@ func equal(a Orderable, b testItem) bool {
 }
 
 func assertHeapOrdering(heap *Heap, t *testing.T) {
-	storage := heap.UnsafeStorage()
+	storage := heap.storage
 	for i, item := range storage {
 		left, right := i*2+1, i*2+2
 		if left < len(storage) {
