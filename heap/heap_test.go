@@ -3,10 +3,16 @@ package heap
 import (
 	"math"
 	"math/rand"
+	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
+
+func TestGoHeap(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "GoHeap Suite")
+}
 
 var _ = Describe("Heap", func() {
 	var subject *Heap
