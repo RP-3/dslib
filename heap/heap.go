@@ -1,3 +1,14 @@
+// Package heap contains handy methods for instantiating and using heaps,
+// AKA priority queues.
+// Items contained within the heap must conform to the Orderable interface,
+// which just means they must have an integer Order which can be used to
+// compare items.
+// Heaps can be pushed to or popped from. Popping always yields the
+// lowest-ordered item in the heap, and pushing adds an item to the heap. If
+// the heap is at capacity, pushing ejects and returns the lowest-ordered
+// item inside the heap.
+// For a general description see https://en.wikipedia.org/wiki/Heap_(data_structure).
+// For a detailed explanation see https://bradfieldcs.com/algos/trees/priority-queues-with-binary-heaps/
 package heap
 
 const maxUint = ^uint(0)
@@ -11,15 +22,7 @@ type Orderable interface {
 	Order() int
 }
 
-// Heap is a priority queue (min-heap), which maintains the lowest-ordered
-// values at the front. Items contained within the heap must conform to the
-// Orderable interface, which just means they must have an integer Order
-// which can be used to compare items. Heaps can be pushed to or popped
-// from. Popping always yields the lowest-orederd item in the heap, and
-// pushing adds an item to the heap. If the heap is at capacity, pushing
-// ejects and returns the lowest-ordered item inside the heap. For a general
-// description see https://en.wikipedia.org/wiki/Heap_(data_structure).
-// For a detailed explanation see https://bradfieldcs.com/algos/trees/priority-queues-with-binary-heaps/
+// Heap is an instance of a heap structure
 type Heap struct {
 	storage []Orderable
 	maxSize int
@@ -55,7 +58,7 @@ func Heapify(source []Orderable, maxSize int) (*Heap, []Orderable) {
 	return result, discarded
 }
 
-// Push adds an item to the heap.
+// Push adds an item to the heap in O(log(n)) time
 // The second return val, if true, indicates that the heap is at its
 // maximum capacity the highest priority item was popped and returned
 // to you as the first return val
@@ -68,7 +71,7 @@ func (h *Heap) Push(val Orderable) (Orderable, bool) {
 	return nil, false
 }
 
-// Pop removes the highest priority item from the heap.
+// Pop removes the highest priority item from the heap in O(log(n)) time.
 // The second return val, if false, indicates that the heap is empty
 // and that a nil value was returned to you as the first return val
 func (h *Heap) Pop() (Orderable, bool) {
