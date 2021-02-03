@@ -6,16 +6,32 @@ import (
 	"testing"
 )
 
+// test implementation
+type intHeap []int
+
+func (h intHeap) Less(i, j int) bool { return h[i] <= h[j] }
+func (h intHeap) Len() int           { return len(h) }
+func (h intHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+func (h intHeap) Peak() Any          { return h[0] }
+func (h *intHeap) Push(v Any)        { (*h) = append(*h, v.(int)) }
+func (h *intHeap) Pop() Any {
+	result := (*h)[len(*h)-1]
+	(*h) = (*h)[:len(*h)-1]
+	return result
+}
+
+func newIntHeap(storage intHeap, maxSize int) *Heap {
+	return NewHeap(&storage, maxSize)
+}
+
 func TestEmpty(t *testing.T) {
-	subject := NewHeap(-1)
-	_, exists := subject.Peak()
-	assertBool(exists, false, t)
-	assertInt(subject.Size(), 0, t)
+	subject := newIntHeap([]int{}, -1)
+	assertInt(subject.storage.Len(), 0, t)
 }
 
 func TestUnbounded(t *testing.T) {
 	var unboundedHeap = func() *Heap {
-		return NewHeap(-1)
+		return newIntHeap([]int{}, -1)
 	}
 
 	t.Run("Capacity", func(t *testing.T) {
@@ -25,7 +41,7 @@ func TestUnbounded(t *testing.T) {
 
 	t.Run("Push", func(t *testing.T) {
 		t.Run("when the heap is empty", func(t *testing.T) {
-			subject, item := unboundedHeap(), testItem{1}
+			subject, item := unboundedHeap(), 1
 			subject.Push(item)
 
 			// increases in size
@@ -34,12 +50,12 @@ func TestUnbounded(t *testing.T) {
 			// places new item at the head
 			obj, ok := subject.Peak()
 			assertBool(ok, true, t)
-			assertBool(equal(obj, item), true, t)
+			assertBool(obj.(int) == item, true, t)
 		})
 
 		t.Run("when the heap has a lower-priority item at the head", func(t *testing.T) {
 			subject := unboundedHeap()
-			a, b := testItem{1}, testItem{2}
+			a, b := 1, 2
 			subject.Push(a)
 			subject.Push(b)
 
@@ -49,12 +65,12 @@ func TestUnbounded(t *testing.T) {
 			// places higher-priority item at tail
 			item, ok := subject.Peak()
 			assertBool(ok, true, t)
-			assertInt(item.Order(), 1, t)
+			assertInt(item.(int), 1, t)
 		})
 
 		t.Run("when the heap has a higher-priority item at the head", func(t *testing.T) {
 			subject := unboundedHeap()
-			a, b := testItem{1}, testItem{2}
+			a, b := 1, 2
 			subject.Push(b)
 			subject.Push(a)
 
@@ -64,18 +80,18 @@ func TestUnbounded(t *testing.T) {
 			// does not replace the head item
 			item, ok := subject.Peak()
 			assertBool(ok, true, t)
-			assertInt(item.Order(), 1, t)
+			assertInt(item.(int), 1, t)
 		})
 
 		t.Run("when the newest item requires just one swap", func(t *testing.T) {
 			subject := unboundedHeap()
-			subject.Push(testItem{4})
-			subject.Push(testItem{5})
-			subject.Push(testItem{8})
-			subject.Push(testItem{6})
-			subject.Push(testItem{9})
-			subject.Push(testItem{9})
-			subject.Push(testItem{7})
+			subject.Push(4)
+			subject.Push(5)
+			subject.Push(8)
+			subject.Push(6)
+			subject.Push(9)
+			subject.Push(9)
+			subject.Push(7)
 			assertHeapOrdering(subject, t)
 		})
 	})
@@ -90,27 +106,27 @@ func TestUnbounded(t *testing.T) {
 		})
 
 		t.Run("when the heap has a single item", func(t *testing.T) {
-			subject, item := unboundedHeap(), testItem{1}
+			subject, item := unboundedHeap(), 1
 			subject.Push(item)
 
 			// returns the correct item
 			obj, ok := subject.Pop()
 			assertBool(ok, true, t)
-			assertBool(equal(obj, item), true, t)
+			assertBool(obj.(int) == item, true, t)
 		})
 
 		t.Run("when the heap contains both higher and lower priority items", func(t *testing.T) {
 			subject := unboundedHeap()
-			subject.Push(testItem{key: 0})
-			subject.Push(testItem{key: 5})
-			subject.Push(testItem{key: 1})
-			subject.Push(testItem{key: 4})
-			subject.Push(testItem{key: 3})
+			subject.Push(0)
+			subject.Push(5)
+			subject.Push(1)
+			subject.Push(4)
+			subject.Push(3)
 
 			// should contain all items as expected
 			assertInt(subject.Size(), 5, t)
 
-			subject.Push(testItem{key: 2}) // should sift to the middle
+			subject.Push(2) // should sift to the middle
 			assertInt(subject.Size(), 6, t)
 
 			// sorts items by their given order
@@ -119,8 +135,8 @@ func TestUnbounded(t *testing.T) {
 				assertHeapOrdering(subject, t)
 				top, ok := subject.Pop()
 				assertBool(ok, true, t)
-				assertBool(top.Order() > lastVal, true, t)
-				lastVal = top.Order()
+				assertBool(top.(int) > lastVal, true, t)
+				lastVal = top.(int)
 			}
 		})
 	})
@@ -129,7 +145,7 @@ func TestUnbounded(t *testing.T) {
 func TestFixedSize(t *testing.T) {
 	heapSize := 5
 	var fixedHeap = func() *Heap {
-		return NewHeap(heapSize)
+		return NewHeap(&intHeap{}, heapSize)
 	}
 
 	t.Run("Capacity", func(t *testing.T) {
@@ -140,24 +156,24 @@ func TestFixedSize(t *testing.T) {
 	t.Run("Push", func(t *testing.T) {
 		t.Run("when <= size items are inserted", func(t *testing.T) {
 			subject := fixedHeap()
-			subject.Push(testItem{key: 1})
-			subject.Push(testItem{key: 5})
-			subject.Push(testItem{key: 2})
-			subject.Push(testItem{key: 4})
-			subject.Push(testItem{key: 3})
+			subject.Push(1)
+			subject.Push(5)
+			subject.Push(2)
+			subject.Push(4)
+			subject.Push(3)
 
 			assertInt(subject.Size(), heapSize, t)
 		})
 
 		t.Run("when > size items are inserted", func(t *testing.T) {
 			subject := fixedHeap()
-			subject.Push(testItem{key: 0})
-			subject.Push(testItem{key: 5})
-			subject.Push(testItem{key: 1})
-			subject.Push(testItem{key: 4})
-			subject.Push(testItem{key: 3})
+			subject.Push(0)
+			subject.Push(5)
+			subject.Push(1)
+			subject.Push(4)
+			subject.Push(3)
 
-			item, overFlowed := subject.Push(testItem{key: 2})
+			item, overFlowed := subject.Push(2)
 
 			// it does not exceed max size
 			assertInt(subject.Size(), heapSize, t)
@@ -168,12 +184,12 @@ func TestFixedSize(t *testing.T) {
 				assertHeapOrdering(subject, t)
 				item, ok := subject.Pop()
 				assertBool(ok, true, t)
-				sortedContents = append(sortedContents, item.Order())
+				sortedContents = append(sortedContents, item.(int))
 			}
 			assertSlice(sortedContents, []int{1, 2, 3, 4, 5}, t) // zero is missing
 
 			assertBool(overFlowed, true, t)
-			assertInt(item.Order(), 0, t)
+			assertInt(item.(int), 0, t)
 		})
 	})
 }
@@ -184,10 +200,10 @@ func TestRobustness(t *testing.T) {
 	popPercent := 25
 
 	t.Run("heap ordering robustness", func(t *testing.T) {
-		subject := NewHeap(heapSize)
+		subject := NewHeap(&intHeap{}, heapSize)
 		for i := 0; i < testSize; i++ {
 			if rand.Intn(100) > popPercent {
-				item := testItem{key: rand.Int()}
+				item := rand.Int()
 				subject.Push(item)
 			} else {
 				subject.Pop()
@@ -199,32 +215,14 @@ func TestRobustness(t *testing.T) {
 
 func TestHeapify(t *testing.T) {
 	t.Run("when the provided slice is empty", func(t *testing.T) {
-		subject, discarded := Heapify(make([]Orderable, 0), -1)
+		subject, discarded := Heapify(&intHeap{}, -1)
 		assertHeapOrdering(subject, t)
 		assertInt(len(discarded), 0, t) // nothing discarded
 	})
 
 	t.Run("when the provided heap has items within it", func(t *testing.T) {
-		nums := []Orderable{
-			testItem{key: 1},
-			testItem{key: 9},
-			testItem{key: 2},
-			testItem{key: 8},
-			testItem{key: 3},
-			testItem{key: 7},
-			testItem{key: 4},
-			testItem{key: 6},
-			testItem{key: 5},
-			testItem{key: 4},
-			testItem{key: 6},
-			testItem{key: 3},
-			testItem{key: 7},
-			testItem{key: 2},
-			testItem{key: 8},
-			testItem{key: 1},
-			testItem{key: 9},
-		}
-		subject, discarded := Heapify(nums, -1)
+		nums := intHeap{1, 9, 2, 8, 3, 7, 4, 6, 5, 4, 6, 3, 7, 2, 8, 1, 9}
+		subject, discarded := Heapify(&nums, -1)
 		assertInt(subject.Capacity(), maxInt, t)
 
 		// generates a valid heap out of the given slice
@@ -234,17 +232,9 @@ func TestHeapify(t *testing.T) {
 	})
 
 	t.Run("when the provided heap is larger than the specified size", func(t *testing.T) {
-		nums := []Orderable{ // seven numbers
-			testItem{key: 1},
-			testItem{key: 9},
-			testItem{key: 2},
-			testItem{key: 8},
-			testItem{key: 3},
-			testItem{key: 7},
-			testItem{key: 4},
-		}
+		nums := intHeap{1, 9, 2, 8, 3, 7, 4} // seven numbers
 
-		subject, discarded := Heapify(nums, 5)
+		subject, discarded := Heapify(&nums, 5)
 		assertHeapOrdering(subject, t) // valid
 		assertInt(subject.Capacity(), 5, t)
 
@@ -254,12 +244,12 @@ func TestHeapify(t *testing.T) {
 			assertHeapOrdering(subject, t)
 			item, ok := subject.Pop()
 			assertBool(ok, true, t)
-			sortedContents = append(sortedContents, item.Order())
+			sortedContents = append(sortedContents, item.(int))
 		}
 		assertSlice(sortedContents, []int{3, 4, 7, 8, 9}, t) // zero is missing
 
-		assertInt(discarded[0].Order(), 1, t)
-		assertInt(discarded[1].Order(), 2, t)
+		assertInt(discarded[0].(int), 1, t)
+		assertInt(discarded[1].(int), 2, t)
 	})
 }
 
@@ -276,7 +266,7 @@ func assertBool(a bool, b bool, t *testing.T) {
 	}
 }
 
-func assertNil(a *Orderable, t *testing.T) {
+func assertNil(a Any, t *testing.T) {
 	if a != nil {
 		t.Errorf("Expected nil but it wasn't\n")
 	}
@@ -294,31 +284,15 @@ func assertSlice(a, b []int, t *testing.T) {
 	}
 }
 
-type testItem struct {
-	key int
-}
-
-func (t testItem) Order() int {
-	return t.key
-}
-
-func equal(a Orderable, b testItem) bool {
-	obj, coerced := a.(testItem)
-	if !coerced {
-		return false
-	}
-	return obj.key == b.key
-}
-
 func assertHeapOrdering(heap *Heap, t *testing.T) {
-	storage := heap.storage
-	for i, item := range storage {
+	storageLen := heap.storage.Len()
+	for i := 0; i < storageLen/2; i++ {
 		left, right := i*2+1, i*2+2
-		if left < len(storage) {
-			assertBool(storage[left].Order() >= item.Order(), true, t)
+		if left < storageLen {
+			assertBool(heap.storage.Less(i, left), true, t)
 		}
-		if right < len(storage) {
-			assertBool(storage[right].Order() >= item.Order(), true, t)
+		if right < storageLen {
+			assertBool(heap.storage.Less(i, right), true, t)
 		}
 	}
 }
